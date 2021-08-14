@@ -29,10 +29,10 @@ if __name__ == '__main__':
 
     x = import_module('models.' + model_name)
     config = x.Config(dataset, embedding)
-    np.random.seed(1)
-    torch.manual_seed(1)
-    torch.cuda.manual_seed_all(1)
-    torch.backends.cudnn.deterministic = True  # 保证每次结果一样
+    np.random.seed(1) # 连续调用两次，随机生成的随机数是一致的
+    torch.manual_seed(1)  # 为CPU中设置种子，生成随机数：
+    torch.cuda.manual_seed_all(1)  # 为所有GPU设置种子，生成随机数：
+    torch.backends.cudnn.deterministic = True  # 保证每次结果一样`
 
     start_time = time.time()
     print("Loading data...")

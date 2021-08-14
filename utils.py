@@ -1,5 +1,7 @@
 # coding: UTF-8
 import os
+from typing import List, Any, Tuple
+
 import torch
 import numpy as np
 import pickle as pkl
@@ -62,7 +64,7 @@ def build_dataset(config, ues_word):
                     words_line.append(vocab.get(word, vocab.get(UNK)))
                 contents.append((words_line, int(label), seq_len))
         return contents  # [([...], 0), ([...], 1), ...]
-    train = load_dataset(config.train_path, config.pad_size)
+    train: List[Tuple[List[Any], int, int]] = load_dataset(config.train_path, config.pad_size)
     dev = load_dataset(config.dev_path, config.pad_size)
     test = load_dataset(config.test_path, config.pad_size)
     return vocab, train, dev, test
@@ -70,9 +72,44 @@ def build_dataset(config, ues_word):
 
 class DatasetIterater(object):
     def __init__(self, batches, batch_size, device):
-        self.batch_size = batch_size
-        self.batches = batches
-        self.n_batches = len(batches) // batch_size
+        # batches ([14,
+        #    125,
+        #    55,
+        #    45,
+        #    35,
+        #    307,
+        #    4,
+        #    81,
+        #    161,
+        #    941,
+        #    258,
+        #    494,
+        #    2,
+        #    175,
+        #    48,
+        #    145,
+        #    97,
+        #    17,
+        #    4761,
+        #    4761,
+        #    4761,
+        #    4761,
+        #    4761,
+        #    4761,
+        #    4761,
+        #    4761,
+        #    4761,
+        #    4761,
+        #    4761,
+        #    4761,
+        #    4761,
+        #    4761],
+        #   3,
+        #   18)
+        # batch_size = 128
+        self.batch_size = batch_size  # 128
+        self.batches = batches # len(self.batches)  180000
+        self.n_batches = len(batches) // batch_size  # 1406.25
         self.residue = False  # 记录batch数量是否为整数
         if len(batches) % self.n_batches != 0:
             self.residue = True
@@ -153,3 +190,26 @@ if __name__ == "__main__":
             embeddings[idx] = np.asarray(emb, dtype='float32')
     f.close()
     np.savez_compressed(filename_trimmed_dir, embeddings=embeddings)
+
+
+# ((tensor([[  14,  125,   55,  ..., 4761, 4761, 4761],
+#           [ 135,   80,   33,  ..., 4761, 4761, 4761],
+#           [ 152,   13,  469,  ..., 4761, 4761, 4761],
+#           ...,
+#           [ 160, 1667, 1147,  ..., 4761, 4761, 4761],
+#           [  31,   75,    4,  ..., 4761, 4761, 4761],
+#           [ 321,  566,  130,  ..., 4761, 4761, 4761]]),
+#   tensor([18, 22, 25, 25, 23, 20, 17, 22, 16, 11, 23, 23, 22, 15,  7, 23, 20, 25,
+#           15,  9, 17, 15, 24, 20, 17, 17, 13, 20, 19, 20, 22, 22, 21, 22, 23, 19,
+#           12, 20, 23, 18, 22, 25, 23, 20, 19, 17, 17, 15, 17, 26, 16, 22, 21, 18,
+#           16, 12, 23, 19, 20, 21, 12, 24, 18, 14, 25, 16, 24, 24, 23, 20, 20, 20,
+#           18, 16, 23, 14, 23, 21, 19, 17, 24, 21, 23, 23, 19, 15, 12, 22, 25, 14,
+#           21, 20, 22, 15, 22, 18, 16, 17, 13, 21, 21, 18, 21, 11, 19, 22, 14, 22,
+#           15, 22, 15, 22, 22, 15, 25, 16, 18, 18, 14, 19, 13, 29, 20, 18, 22, 16,
+#           18, 22])),
+#  tensor([3, 4, 1, 7, 5, 5, 9, 1, 8, 4, 3, 7, 5, 2, 1, 8, 1, 1, 8, 4, 4, 6, 7, 1,
+#          9, 4, 2, 9, 4, 2, 2, 9, 8, 9, 1, 3, 9, 5, 9, 6, 7, 2, 9, 5, 9, 4, 5, 6,
+#          8, 1, 2, 1, 4, 0, 5, 4, 9, 6, 5, 5, 2, 4, 5, 5, 7, 8, 6, 7, 7, 2, 9, 0,
+#          4, 6, 7, 2, 9, 7, 9, 0, 2, 9, 9, 4, 9, 0, 0, 4, 1, 2, 5, 5, 7, 0, 5, 9,
+#          5, 3, 4, 6, 8, 3, 5, 9, 3, 9, 4, 9, 5, 4, 6, 2, 3, 6, 7, 4, 6, 2, 2, 2,
+#          0, 1, 6, 4, 4, 2, 2, 3]))

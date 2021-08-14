@@ -40,7 +40,7 @@ def build_dataset(config, ues_word):
         pkl.dump(vocab, open(config.vocab_path, 'wb'))
     print(f"Vocab size: {len(vocab)}")
 
-    def biGramHash(sequence, t, buckets):
+    def biGramHash(sequence, t, buckets):  # words_line, i, buckets  len(words_line) = 32  buckets=250499
         t1 = sequence[t - 1] if t - 1 >= 0 else 0
         return (t1 * 14918087) % buckets
 
@@ -58,7 +58,7 @@ def build_dataset(config, ues_word):
                     continue
                 content, label = lin.split('\t')
                 words_line = []
-                token = tokenizer(content)
+                token = tokenizer(content)  # ['连', '续', '上', '涨', '7', '个', '月', ' ', '糖', '价', '7', '月', '可', '能', '出', '现', '调', '整', '行', '情']
                 seq_len = len(token)
                 if pad_size:
                     if len(token) < pad_size:
@@ -69,14 +69,14 @@ def build_dataset(config, ues_word):
                 # word to id
                 for word in token:
                     words_line.append(vocab.get(word, vocab.get(UNK)))
-
+                # words_line [347, 221, 23, 209, 41, 179, 38, 0, 1096, 33, 41, 38, 126, 94, 44, 67, 174, 501, 46, 143, 4761, 4761, 4761, 4761, 4761, 4761, 4761, 4761, 4761, 4761, 4761, 4761]
                 # fasttext ngram
-                buckets = config.n_gram_vocab
+                buckets = config.n_gram_vocab  # ngram 词表大小 250499
                 bigram = []
                 trigram = []
                 # ------ngram------
-                for i in range(pad_size):
-                    bigram.append(biGramHash(words_line, i, buckets))
+                for i in range(pad_size):  # pad_size: 32
+                    bigram.append(biGramHash(words_line, i, buckets))  # len(words_line) = 32  buckets=250499
                     trigram.append(triGramHash(words_line, i, buckets))
                 # -----------------
                 contents.append((words_line, int(label), seq_len, bigram, trigram))
@@ -89,6 +89,40 @@ def build_dataset(config, ues_word):
 
 class DatasetIterater(object):
     def __init__(self, batches, batch_size, device):
+        # batches ([14,
+        #    125,
+        #    55,
+        #    45,
+        #    35,
+        #    307,
+        #    4,
+        #    81,
+        #    161,
+        #    941,
+        #    258,
+        #    494,
+        #    2,
+        #    175,
+        #    48,
+        #    145,
+        #    97,
+        #    17,
+        #    4761,
+        #    4761,
+        #    4761,
+        #    4761,
+        #    4761,
+        #    4761,
+        #    4761,
+        #    4761,
+        #    4761,
+        #    4761,
+        #    4761,
+        #    4761,
+        #    4761,
+        #    4761],
+        #   3,
+        #   18)
         self.batch_size = batch_size
         self.batches = batches
         self.n_batches = len(batches) // batch_size
